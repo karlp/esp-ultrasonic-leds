@@ -12,3 +12,12 @@ config ESP_WIFI_PASSWORD
     help
 	WiFi password (WPA or WPA2) for the example to use.
 endmenu
+
+menu "Ultrasonic configuration"
+config US_PIN_TRIGGER
+	int "Pin connected to Trigger on Ultrasonic module"
+	default 14
+config US_PIN_ECHO
+	int "Pin connected to Echo on Ultrasonic module"
+	default 12
+endmenu
