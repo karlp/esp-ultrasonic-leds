@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := app-template
+PROJECT_NAME := esp-range-leds
 
 include $(IDF_PATH)/make/project.mk
 
