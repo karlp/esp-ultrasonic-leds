@@ -9,6 +9,8 @@
 #include "nvs_flash.h"
 #include "driver/gpio.h"
 
+#include "leds.h"
+
 static const char *TAG = "us-leds";
 
 esp_err_t event_handler(void *ctx, system_event_t *event)
@@ -98,7 +100,6 @@ void task_ultrasonic(void *pvParameters)
 	
 }
 
-
 void app_main(void)
 {
     nvs_flash_init();
@@ -120,6 +121,7 @@ void app_main(void)
     ESP_ERROR_CHECK( esp_wifi_connect() );
 
     xTaskCreate(task_ultrasonic, "ultrasonci", 2048, NULL, 10, NULL);
+    xTaskCreate(task_leds, "leds", 2048, NULL, 10, NULL);
 
     gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
     int level = 0;

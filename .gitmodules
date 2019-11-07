@@ -1,0 +1,3 @@
+[submodule "components/neopixelbus-rtos"]
+	path = components/neopixelbus-rtos
+	url = https://github.com/THKDev/NeoPixelBus_ESP8266_RTOS.git

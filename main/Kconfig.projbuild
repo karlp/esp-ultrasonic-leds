@@ -21,3 +21,9 @@ config US_PIN_ECHO
 	int "Pin connected to Echo on Ultrasonic module"
 	default 12
 endmenu
+
+menu "Leds configuration"
+config LEDS_STRIP_LENGTH
+	int "How many pixels in your led strip"
+	default 4
+endmenu
