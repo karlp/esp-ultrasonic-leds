@@ -42,6 +42,7 @@ static void us_timing_isr(void *args)
 
 void task_ultrasonic(void *pvParameters)
 {
+	xQueueHandle qout = pvParameters;
 	int ptrig = CONFIG_US_PIN_TRIGGER;
 	int pecho = CONFIG_US_PIN_ECHO;
 	gpio_config_t iotrig = {
@@ -91,6 +92,11 @@ void task_ultrasonic(void *pvParameters)
 			float v = 331.4 + (0.6*t);
 			float distance = tv * 1e-6 * v / 2;
 			ESP_LOGI(TAG, "time: %dus, %f m", tv, distance);
+			if (xQueueSend(qout, &distance, 20)) {
+				/* good */
+			} else {
+				ESP_LOGW(TAG, "failed to post distance to consumers?");
+			}
 		} else {
 			/* didn't get an irq back! */
 			ESP_LOGI(TAG, "no data :(");
@@ -120,8 +126,10 @@ void app_main(void)
     ESP_ERROR_CHECK( esp_wifi_start() );
     ESP_ERROR_CHECK( esp_wifi_connect() );
 
-    xTaskCreate(task_ultrasonic, "ultrasonci", 2048, NULL, 10, NULL);
-    xTaskCreate(task_leds, "leds", 2048, NULL, 10, NULL);
+    /* even three is way too many */
+    xQueueHandle distance_queue = xQueueCreate(3, sizeof(float));
+    xTaskCreate(task_ultrasonic, "ultrasonic", 2048, distance_queue, 10, NULL);
+    xTaskCreate(task_leds, "leds", 2048, distance_queue, 10, NULL);
 
     gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
     int level = 0;

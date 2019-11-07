@@ -7,8 +7,9 @@
 #include <NeoPixelBus.h>
 #include "leds.h"
 
-extern "C" void task_leds(void *args)
+extern "C" void task_leds(void *pvParameters)
 {
+	xQueueHandle qin = pvParameters;
 	static const char *ttag = "leds";
 	const int colorSaturation = 64;
 	const uint16_t PixelCount = CONFIG_LEDS_STRIP_LENGTH;
@@ -26,17 +27,28 @@ extern "C" void task_leds(void *args)
 
 	int i = 0;
 	while(true) {
-		i++;
-		for (int k = 0; k < PixelCount; k++) {
-			switch((k + i)%4) {
-				case 0: strip.SetPixelColor(k, red); break;
-				case 1: strip.SetPixelColor(k, blue); break;
-				case 2: strip.SetPixelColor(k, green); break;
-				case 3: strip.SetPixelColor(k, white); break;
+		float d;
+		if (xQueueReceive(qin, &d, 50)) {
+			/* got valid data, update leds... */
+
+			/*
+			 * loose plan, far is red, near is blue....
+			 */
+			const float maxd = 2.0f;
+			float ratio = (maxd - d) / maxd;
+			ESP_LOGI(ttag, "for d: %f, ratio of %f determined", d, ratio);
+			HslColor far(0.0f, 0.9f, 0.5f);
+			HslColor near(200.0f/360.0f, 0.9f, 0.5f);
+			HslColor indicator = HslColor::LinearBlend<NeoHueBlendShortestDistance>(far, near, ratio);
+			for (int k = 0; k < PixelCount; k++) {
+				/* I guess, once you've got to this, do some blending along the strip too... */
+				strip.SetPixelColor(k, indicator);
 			}
+			strip.Show();
+		} else {
+			ESP_LOGW(ttag, "failed to get a distance reading...");
+			/* in a magic world we fire off a task that magically keeps the leds blinking some warning pattern */
 		}
-    		strip.Show();
-		vTaskDelay(500 / portTICK_PERIOD_MS);
 	}
 }
 
